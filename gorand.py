@@ -64,8 +64,9 @@ def move2sgf(move):
     outstring = "A%s[%s%s]" % out
     return(outstring)
 
-def moves2sgf(moves):
+def moves2sgf(moves, size):
     out = ["(;"]
+    out.extend(["SZ[", str(size), "];"])
     for move in moves:
         out.append(move2sgf(move))
     out.append(")")
@@ -86,7 +87,7 @@ def run_gnugo(sgf, options):
 def main():
     args = get_args()
     moves = generate_moves(args)
-    sgf = moves2sgf(moves)
+    sgf = moves2sgf(moves, args.boardsize)
     if args.run_gnugo:
         run_gnugo(sgf, args.gnugo_options)
     else:
