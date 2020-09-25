@@ -5,12 +5,15 @@ import subprocess
 import tempfile
 import argparse
 import random
+import os
 
 def get_args():
     parser = argparse.ArgumentParser("start a randomized Go position in GNU Go")
     parser.add_argument("-b", "--boardsize", help = "Board size (default = 19).", default=19, type = int)
     parser.add_argument("-H", "--handicap", help = "Handicap (default = 0).", default=0, type = int)
     parser.add_argument("-r", "--random_moves", help = "Number of random moves (default = 0).", default=0, type = int)
+    parser.add_argument("-R", "--run_gnugo", help = "Flag to run game directly in gnugo, rather than printing .sgf file to stdout (default = False).", default = False, action = "store_true")
+    parser.add_argument("-g", "--gnugo_options", help = "Options to pass to GNU Go.", default=None)
     args = parser.parse_args()
     return(args)
 
@@ -68,14 +71,26 @@ def moves2sgf(moves):
     out.append(")")
     return("".join(out))
 
+def run_gnugo(sgf, options):
+    sgf_file = tempfile.NamedTemporaryFile(delete=False, mode = "w")
+    sgf_path = sgf_file.name
+    sgf_file.write(sgf)
+    sgf_file.close()
+    command = ["gnugo", "-l", sgf_path, "--mode", "ascii"]
+    if options: command.extend(options.split())
+    
+    subprocess.run(command)
+    
+    os.remove(sgf_path)
+
 def main():
     args = get_args()
     moves = generate_moves(args)
     sgf = moves2sgf(moves)
-    print(args)
-    print(moves)
-    print(sgf)
-    # run_gnugo(sgf)
+    if args.run_gnugo:
+        run_gnugo(sgf, args.gnugo_options)
+    else:
+        print(sgf)
 
 if __name__ == "__main__":
     main()
