@@ -45,27 +45,30 @@ def unique_move(move, moves_list):
             ok = False
     return(ok)
 
-def generate_moves(args):
+def generate_moves(boardsize = 19, handicap = 0, random_moves = 0, symmetric = False):
     moves_list = []
     
-    handicap_moves_to_generate = args.handicap
+    handicap_moves_to_generate = handicap
     while(handicap_moves_to_generate > 0):
-        new_move = generate_move(args.boardsize, "black")
+        new_move = generate_move(boardsize, "black")
         if unique_move(new_move, moves_list):
             moves_list.append(new_move)
             handicap_moves_to_generate -= 1
         
-    random_moves_to_generate = args.random_moves
+    random_moves_to_generate = random_moves
     while(random_moves_to_generate > 0):
-        if args.symmetric:
-            new_move_pair = generate_sym_move_pair(args.boardsize)
+        if symmetric:
+            new_move_pair = generate_sym_move_pair(boardsize)
         else:
-            new_move_pair = generate_move_pair(args.boardsize)
+            new_move_pair = generate_move_pair(boardsize)
         if unique_move(new_move_pair[0], moves_list) and unique_move(new_move_pair[1], moves_list):
             moves_list.append(new_move_pair[0])
             moves_list.append(new_move_pair[1])
             random_moves_to_generate -= 1
     return(moves_list)
+
+def generate_moves_from_args(args):
+    return generate_moves(boardsize = args.boardsize, handicap = args.handicap, random_moves = args.random_moves, symmetric = args.symmetric)
 
 def move2sgf(move):
     positions = "abcdefghijklmnopqrstuvwxyz"
@@ -100,7 +103,7 @@ def run_gnugo(sgf, options):
 
 def main():
     args = get_args()
-    moves = generate_moves(args)
+    moves = generate_moves_from_args(args)
     sgf = moves2sgf(moves, args.boardsize)
     if args.run_gnugo:
         run_gnugo(sgf, args.gnugo_options)
