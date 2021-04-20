@@ -14,6 +14,7 @@ def get_args():
     parser.add_argument("-r", "--random_moves", help = "Number of random moves (default = 0).", default=0, type = int)
     parser.add_argument("-R", "--run_gnugo", help = "Flag to run game directly in gnugo, rather than printing .sgf file to stdout (default = False).", default = False, action = "store_true")
     parser.add_argument("-g", "--gnugo_options", help = "Options to pass to GNU Go.", default=None)
+    parser.add_argument("-s", "--symmetric", help = "Make random moves rotationally symmetric between black and white", action = "store_true")
     args = parser.parse_args()
     return(args)
 
@@ -25,6 +26,16 @@ def generate_move(boardsize, color):
 def generate_move_pair(boardsize):
     move1 = generate_move(boardsize, "black")
     move2 = generate_move(boardsize, "white")
+    return((move1, move2))
+
+def symmetric_move(boardsize, color, mirror_move):
+    new_xcoord = boardsize - mirror_move[1] - 1
+    new_ycoord = boardsize - mirror_move[2] - 1
+    return((color, new_xcoord, new_ycoord))
+
+def generate_sym_move_pair(boardsize):
+    move1 = generate_move(boardsize, "black")
+    move2 = symmetric_move(boardsize, "white", move1)
     return((move1, move2))
 
 def unique_move(move, moves_list):
@@ -46,7 +57,10 @@ def generate_moves(args):
         
     random_moves_to_generate = args.random_moves
     while(random_moves_to_generate > 0):
-        new_move_pair = generate_move_pair(args.boardsize)
+        if args.symmetric:
+            new_move_pair = generate_sym_move_pair(args.boardsize)
+        else:
+            new_move_pair = generate_move_pair(args.boardsize)
         if unique_move(new_move_pair[0], moves_list) and unique_move(new_move_pair[1], moves_list):
             moves_list.append(new_move_pair[0])
             moves_list.append(new_move_pair[1])
